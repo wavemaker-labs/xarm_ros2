@@ -18,7 +18,7 @@ from launch_ros.substitutions import FindPackageShare
 from launch.event_handlers import OnProcessExit
 from launch.actions import OpaqueFunction
 
-    
+
 def launch_setup(context, *args, **kwargs):
     prefix_1 = LaunchConfiguration('prefix_1', default='L_')
     prefix_2 = LaunchConfiguration('prefix_2', default='R_')
@@ -39,7 +39,7 @@ def launch_setup(context, *args, **kwargs):
     effort_control = LaunchConfiguration('effort_control', default=False)
     velocity_control = LaunchConfiguration('velocity_control', default=False)
     ros2_control_plugin = LaunchConfiguration('ros2_control_plugin', default='gazebo_ros2_control/GazeboSystem')
-    
+
     add_other_geometry = LaunchConfiguration('add_other_geometry', default=False)
     add_other_geometry_1 = LaunchConfiguration('add_other_geometry_1', default=add_other_geometry)
     add_other_geometry_2 = LaunchConfiguration('add_other_geometry_2', default=add_other_geometry)
@@ -59,7 +59,7 @@ def launch_setup(context, *args, **kwargs):
     geometry_radius = LaunchConfiguration('geometry_radius', default=0.1)
     geometry_radius_1 = LaunchConfiguration('geometry_radius_1', default=geometry_radius)
     geometry_radius_2 = LaunchConfiguration('geometry_radius_2', default=geometry_radius)
-    
+
     geometry_length = LaunchConfiguration('geometry_length', default=0.1)
     geometry_length_1 = LaunchConfiguration('geometry_length_1', default=geometry_length)
     geometry_length_2 = LaunchConfiguration('geometry_length_2', default=geometry_length)
@@ -71,19 +71,19 @@ def launch_setup(context, *args, **kwargs):
     geometry_mesh_filename = LaunchConfiguration('geometry_mesh_filename', default='')
     geometry_mesh_filename_1 = LaunchConfiguration('geometry_mesh_filename_1', default=geometry_mesh_filename)
     geometry_mesh_filename_2 = LaunchConfiguration('geometry_mesh_filename_2', default=geometry_mesh_filename)
-    
+
     geometry_mesh_origin_xyz = LaunchConfiguration('geometry_mesh_origin_xyz', default='"0 0 0"')
     geometry_mesh_origin_xyz_1 = LaunchConfiguration('geometry_mesh_origin_xyz_1', default=geometry_mesh_origin_xyz)
     geometry_mesh_origin_xyz_2 = LaunchConfiguration('geometry_mesh_origin_xyz_2', default=geometry_mesh_origin_xyz)
-    
+
     geometry_mesh_origin_rpy = LaunchConfiguration('geometry_mesh_origin_rpy', default='"0 0 0"')
     geometry_mesh_origin_rpy_1 = LaunchConfiguration('geometry_mesh_origin_rpy_1', default=geometry_mesh_origin_rpy)
     geometry_mesh_origin_rpy_2 = LaunchConfiguration('geometry_mesh_origin_rpy_2', default=geometry_mesh_origin_rpy)
-    
+
     geometry_mesh_tcp_xyz = LaunchConfiguration('geometry_mesh_tcp_xyz', default='"0 0 0"')
     geometry_mesh_tcp_xyz_1 = LaunchConfiguration('geometry_mesh_tcp_xyz_1', default=geometry_mesh_tcp_xyz)
     geometry_mesh_tcp_xyz_2 = LaunchConfiguration('geometry_mesh_tcp_xyz_2', default=geometry_mesh_tcp_xyz)
-    
+
     geometry_mesh_tcp_rpy = LaunchConfiguration('geometry_mesh_tcp_rpy', default='"0 0 0"')
     geometry_mesh_tcp_rpy_1 = LaunchConfiguration('geometry_mesh_tcp_rpy_1', default=geometry_mesh_tcp_rpy)
     geometry_mesh_tcp_rpy_2 = LaunchConfiguration('geometry_mesh_tcp_rpy_2', default=geometry_mesh_tcp_rpy)
@@ -99,8 +99,8 @@ def launch_setup(context, *args, **kwargs):
     ros2_control_params = generate_dual_ros2_control_params_temp_file(
         os.path.join(get_package_share_directory('xarm_controller'), 'config', '{}{}_controllers.yaml'.format(robot_type_1.perform(context), dof_1.perform(context))),
         os.path.join(get_package_share_directory('xarm_controller'), 'config', '{}{}_controllers.yaml'.format(robot_type_2.perform(context), dof_2.perform(context))),
-        prefix_1=prefix_1.perform(context), 
-        prefix_2=prefix_2.perform(context), 
+        prefix_1=prefix_1.perform(context),
+        prefix_2=prefix_2.perform(context),
         add_gripper_1=add_gripper_1.perform(context) in ('True', 'true'),
         add_gripper_2=add_gripper_2.perform(context) in ('True', 'true'),
         ros_namespace=ros_namespace,
@@ -113,7 +113,7 @@ def launch_setup(context, *args, **kwargs):
     get_xacro_file_content = getattr(mod, 'get_xacro_file_content')
     robot_description = {
         'robot_description': get_xacro_file_content(
-            xacro_file=PathJoinSubstitution([FindPackageShare('xarm_description'), 'urdf', 'dual_xarm_device.urdf.xacro']), 
+            xacro_file=PathJoinSubstitution([FindPackageShare('xarm_description'), 'urdf', 'dual_xarm_device.urdf.xacro']),
             arguments={
                 'prefix_1': prefix_1,
                 'prefix_2': prefix_2,
@@ -187,7 +187,7 @@ def launch_setup(context, *args, **kwargs):
     # gazebo spawn entity node
     gazebo_spawn_entity_node = Node(
         package="gazebo_ros",
-        executable="spawn_entity.py",
+        executable="spawn_entity",
         output='screen',
         arguments=[
             '-topic', 'robot_description',
