@@ -1,5 +1,5 @@
 repositories:
-  xarm_ros2:
+  xarm_sdk:
     type: git
     url: https://github.com/xArm-Developer/xArm-CPLUS-SDK.git
     version: ece5a35b2ec5bc6f57c66c4823f73b4696a42d75
