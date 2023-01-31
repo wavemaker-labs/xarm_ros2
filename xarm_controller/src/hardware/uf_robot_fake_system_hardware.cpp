@@ -12,6 +12,20 @@ namespace uf_robot_hardware
 {
     static const rclcpp::Logger LOGGER = rclcpp::get_logger("UFACTORY.RobotFakeHW");
 
+    void print_cmds(const std::vector<double> &position_cmds_, const std::vector<double> &velocity_cmds_) {
+        std::string pos_str = "[ ";
+        std::string vel_str = "[ ";
+        for (int i = 0; i < position_cmds_.size(); i++) {
+            pos_str += std::to_string(position_cmds_[i]);
+            pos_str += " ";
+            vel_str += std::to_string(velocity_cmds_[i]);
+            vel_str += " ";
+        }
+        pos_str += "]";
+        vel_str += "]";
+        RCLCPP_INFO(LOGGER, "positon: %s, velocity: %s", pos_str.c_str(), vel_str.c_str());
+    }
+
     CallbackReturn UFRobotFakeSystemHardware::on_init(const hardware_interface::HardwareInfo& info)
     {
         if (hardware_interface::SystemInterface::on_init(info) != CallbackReturn::SUCCESS) {
@@ -24,7 +38,7 @@ namespace uf_robot_hardware
         node_thread_ = std::thread([this]() {
             rclcpp::spin(node_);
         });
-        
+
         joint_state_msg_.header.frame_id = "joint-state data";
         joint_state_msg_.name.resize(info_.joints.size());
         joint_state_msg_.position.resize(info_.joints.size(), 0);
@@ -34,13 +48,26 @@ namespace uf_robot_hardware
         for (int i = 0; i < info_.joints.size(); i++) {
             joint_state_msg_.name[i] = info_.joints[i].name;
         }
-        
+
         position_states_.resize(info_.joints.size(), 0);
         velocity_states_.resize(info_.joints.size(), 0);
         position_cmds_.resize(info_.joints.size(), 0);
         velocity_cmds_.resize(info_.joints.size(), 0);
 
+
+        RCLCPP_INFO_STREAM(LOGGER, "Hardware parameters:");
+        std::for_each(std::begin(info.hardware_parameters), std::end(info.hardware_parameters),
+            [](std::pair<std::string, std::string> key_value) {
+                RCLCPP_INFO_STREAM(LOGGER, "name: " << key_value.first << ", value: " << key_value.second);
+        });
+        size_t joint_index = 0;
         for (const hardware_interface::ComponentInfo & joint : info_.joints) {
+
+            RCLCPP_INFO_STREAM(LOGGER, "Params for joint " << joint.name);
+            std::for_each(std::begin(joint.parameters), std::end(joint.parameters),
+                [](std::pair<std::string, std::string> key_value) {
+                    RCLCPP_INFO_STREAM(LOGGER, "name: " << key_value.first << ", value: " << key_value.second);
+            });
             bool has_pos_cmd_interface = false;
             for (auto i = 0u; i < joint.command_interfaces.size(); ++i) {
                 if (joint.command_interfaces[i].name == hardware_interface::HW_IF_POSITION) {
@@ -59,6 +86,18 @@ namespace uf_robot_hardware
             for (auto i = 0u; i < joint.state_interfaces.size(); ++i) {
                 if (joint.state_interfaces[i].name == hardware_interface::HW_IF_POSITION) {
                     has_pos_state_interface = true;
+
+                    try {
+                        double initial_value = std::stod(joint.state_interfaces[i].initial_value);
+                        position_states_[joint_index] = initial_value;
+                        position_cmds_[joint_index] = initial_value;
+                        joint_state_msg_.position[joint_index] = initial_value;
+                        RCLCPP_INFO_STREAM(LOGGER, "Found initial value for joint " << joint.name << "[i:"<< joint_index << "]: " << initial_value);
+                    }
+                    catch (std::exception &e) {
+                        RCLCPP_ERROR_STREAM(LOGGER, "ERROR: Cannot parse initial value for joint " << joint.name << "!");
+                    }
+
                     break;
                 }
             }
@@ -68,8 +107,10 @@ namespace uf_robot_hardware
                 );
                 return CallbackReturn::ERROR;
             }
+            ++joint_index;
         }
 
+        print_cmds(position_cmds_, velocity_cmds_);
         RCLCPP_INFO(LOGGER, "System Sucessfully inited!");
         return CallbackReturn::SUCCESS;
     }
@@ -123,23 +164,11 @@ namespace uf_robot_hardware
 
     hardware_interface::return_type UFRobotFakeSystemHardware::write(const rclcpp::Time & time, const rclcpp::Duration &period)
     {
-        // std::string pos_str = "[ ";
-        // std::string vel_str = "[ ";
-        // for (int i = 0; i < position_cmds_.size(); i++) { 
-        //     pos_str += std::to_string(position_cmds_[i]); 
-        //     pos_str += " ";
-        //     vel_str += std::to_string(velocity_cmds_[i]); 
-        //     vel_str += " ";
-        // }
-        // pos_str += "]";
-        // vel_str += "]";
-        // RCLCPP_INFO(LOGGER, "positon: %s, velocity: %s", pos_str.c_str(), vel_str.c_str());
-
-        for (int i = 0; i < position_cmds_.size(); i++) { 
+        for (int i = 0; i < position_cmds_.size(); i++) {
             position_states_[i] = position_cmds_[i];
             joint_state_msg_.position[i] = position_cmds_[i];
         }
-        for (int i = 0; i < velocity_cmds_.size(); i++) { 
+        for (int i = 0; i < velocity_cmds_.size(); i++) {
             velocity_states_[i] = velocity_cmds_[i];
             joint_state_msg_.velocity[i] = velocity_cmds_[i];
         }
